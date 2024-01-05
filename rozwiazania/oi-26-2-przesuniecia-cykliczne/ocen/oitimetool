@@ -1,0 +1,6 @@
+#!/bin/sh
+
+PIN_DIR0="`dirname "$0"`/bin"
+PIN_DIR="$PIN_DIR0/pin-2.14-71313-gcc.4.4.7-linux"
+
+"$PIN_DIR/pin" -injection child -t "$PIN_DIR0/oitimetool.so" $OITIMETOOL_ARGS -- $*

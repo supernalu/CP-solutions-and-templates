@@ -1,0 +1,10 @@
+CREATE TABLE public."WYNIKI"
+(
+    id_skier integer,
+    id_bad integer,
+    "id_os_wpisującej_wynik" integer,
+    "id_os_zatwierdzającej_wynik" integer
+);
+
+ALTER TABLE IF EXISTS public."WYNIKI"
+    OWNER to postgres;
