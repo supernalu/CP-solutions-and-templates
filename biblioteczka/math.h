@@ -72,3 +72,15 @@ ll BinomialCoefficent(ll a, ll b, ll MOD, ll factorial[]) {
     res = (res*tmp1)%MOD; res = (res*fastExp(tmp2, MOD-2, MOD))%MOD; res = (res*fastExp(tmp3, MOD-2, MOD))%MOD; 
     return res;
 }
+ll gcd(ll a, ll b, ll &x, ll &y) {
+    if (b == 0) {
+        x = 1;
+        y = 0;
+        return a;
+    }
+    ll xx, yy;
+    ll res = gcd(b, a % b, xx, yy);
+    x = yy;
+    y = xx - yy * (a / b);
+    return res;
+}

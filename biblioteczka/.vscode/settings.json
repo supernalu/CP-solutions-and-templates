@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "random": "cpp",
+        "iostream": "cpp",
+        "bitset": "cpp",
+        "complex": "cpp",
+        "limits": "cpp",
+        "memory": "cpp",
+        "functional": "cpp"
+    }
+}

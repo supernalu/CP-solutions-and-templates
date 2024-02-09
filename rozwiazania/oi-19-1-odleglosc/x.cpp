@@ -1,6 +1,4 @@
 #include <bits/stdc++.h>
-
-
 #define sim template < class c
 #define ris return * this
 #define dor > debug & operator <<

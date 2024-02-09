@@ -1,77 +1,144 @@
 #include <bits/stdc++.h>
-
 using namespace std;
+typedef long long ll;
+using rectangle = tuple<int, int, int, int>;
+using point = pair<int, int>;
 
-constexpr int MAXN = 1e6 + 10;
+// in: vector<pair<rectangle, int>> rectanglesWithIdSortedByX, vector<point> pointsSortedByX, vector<int> importantX
+// inside: set<pair<int, int>> sweepline
+// out: unordered_map<point, vector<int>> toVertex
 
-struct Point {
-    int x;
-    int y;
-};
+// in: unordered_map<point, vector<int>> toVertex
+// inside: 
+// out: vector<int> adj
 
-struct Rectangle {
-    int beg;
-    int end;
-    int idx;
-
-    Rectangle(int beg, int end, int idx) beg(beg), end(end), idx(idx) {}
-
-    bool operator<(Rectangle& const rhs) const {
-        if (beg != rhs.beg) {
-            return beg < rhs.beg;
-        }
-        return end < rhs.end;
-    }
-};
-
-// Zmienne
+// in: int vBegin, int vEnd, vector<int> adj, vector<point> dangerousPoints
+// inside: queue<int> bfsQueue
+// out: int distEnd
 int w, h, n, m;
-Point start, finish;
+vector<rectangle> rectangles; // stale
+point p, k;
 
-map<int, vector<Rectangle>> down;
-map<int, vector<Rectangle>> up;
-map<int, vector<Rectangle>> left;
-map<int, vector<Rectangle>> right;
+set<int> importantX;
+unordered_map<int, vector<int>> xToStartingSegments;
+unordered_map<int, vector<int>> xToEndingSegments;
+unordered_map<int, vector<int>> xToDangerousY;
 
-set<int> importantX, importantY;
-
-pair<Point, Point> rectangles[MAXN];
-
-int main() {
-    ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
-
-    cin >> w >> h >> n >> m >> start.x >> start.y >> finish.x >> finish.y;
-
-    importantX.insert(start.x);
-    importantX.insert(finish.x);
-    importantY.insert(start.y);
-    importantY.insert(finish.y);
-
-    for (int i = 1; i <= n; ++i) {
-        cin >> rectangles[i].first.x >> rectangles[i].first.y >> rectangles[i].second.x >> rectangles[i].second.y;
-
-        if (rectangles[i].first.x > rectangles[i].second.x) {
-            swap(rectangles[i].first, rectangles[i].second);
+int a, b;
+vector<bool> vis(1'000'000, false);
+vector<int> adj[1'000'000];
+int dist[1'000'000];
+void solve() {
+    set<pair<int, int>> sweep;
+    for (auto line : importantX) {
+        //cout << line << ' ';
+        vector<int> deletedRectIdx;
+        for (auto rectIdx : xToEndingSegments[line]) {
+            auto [x1, y1, x2, y2] = rectangles[rectIdx];
+            sweep.erase({y2, rectIdx});
+            deletedRectIdx.emplace_back(rectIdx);
         }
         
-        down[rectangles[i].first.y].emplace_back(rectangles[i].first.x, rectangles[i].second.x, i);
-        up[rectangles[i].second.y].emplace_back(rectangles[i].first.x, rectangles[i].second.x, i);
-        left[rectangles[i].first.x].emplace_back(rectangles[i].first.y, rectangles[i].second.y, i);
-        right[rectangles[i].second.x].emplace_back(rectangles[i].first.y, rectangles[i].second.y, i);
+        vector<int> addedRectIdx;
+        for (auto rectIdx : xToStartingSegments[line]) {
+            auto [x1, y1, x2, y2] = rectangles[rectIdx];
+            sweep.insert({y2, rectIdx});
+            addedRectIdx.emplace_back(rectIdx);
+        }
+        
+        for (auto rectIdx : deletedRectIdx) {
+            auto [x1, y1, x2, y2] = rectangles[rectIdx];
+            if (!sweep.empty()) {
+                auto begIt = sweep.upper_bound({y1, INT_MIN});
+                auto endIt = sweep.lower_bound({y2, INT_MIN});
+                
+                ++endIt;
+                
+                for (; begIt != endIt; begIt++) {
+                    adj[rectIdx].push_back((*begIt).second);
+                    adj[(*begIt).second].push_back(rectIdx);
+                }
+                
+            }
+        }
+        
+        for (auto rectIdx : addedRectIdx) {
+            auto [x1, y1, x2, y2] = rectangles[rectIdx];
+            auto it = sweep.lower_bound({y2, INT_MIN});
+            if (it != sweep.begin()) {
+                auto it2 = it;
+                --it2;
+                adj[(*it).second].emplace_back((*it2).second);
+                adj[(*it2).second].emplace_back((*it).second);
+            }
+            auto it2 = it;
+            ++it2;
+            if (it2 != sweep.end()) {
+                adj[(*it).second].emplace_back((*it2).second);
+                adj[(*it2).second].emplace_back((*it).second);
+            }
+        }
+        for (auto y : xToDangerousY[line]) {
+            auto it = sweep.lower_bound({y, INT_MIN});
+            vis[(*it).second] = true;
+        }
+        if (line == p.first) {
+            auto it = sweep.lower_bound({p.second, INT_MIN});
+            a = (*it).second;
+        }
+        if (line == k.first) {
+            auto it = sweep.lower_bound({k.second, INT_MIN});
+            b = (*it).second;
+        }
+        
     }
-
-    for (auto& vec : down) {
-        sort(vec.begin(), vec.end());
-    }
-    for (auto& vec : up) {
-        sort(vec.begin(), vec.end());
-    }
-    for (auto& vec : left) {
-        sort(vec.begin(), vec.end());
-    }
-    for (auto& vec : right) {
-        sort(vec.begin(), vec.end());
-    }
-
-
 }
+
+void bfs(int st) {
+    queue<int> q;
+    q.push(st);
+    vis[st] = 1;
+    dist[st] = 1;
+    while (!q.empty()) {
+        int v = q.front();
+        q.pop();
+        for (auto u : adj[v]) {
+            if (vis[u])
+                continue;
+            dist[u] = dist[v]+1;
+            vis[u] = 1;
+            q.push(u);
+        }
+    }
+}
+
+int main() {
+    //ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+
+    cin >> w >> h >> n >> m;
+    rectangles.resize(n);
+
+    cin >> p.first >> p.second >> k.first >> k.second;
+    importantX.emplace(p.first);
+    importantX.emplace(k.first);
+    
+    for (int i = 0; i < n; ++i) {
+        auto& [x1, y1, x2, y2] = rectangles[i];
+        cin >> x1 >> y1 >> x2 >> y2;
+        importantX.emplace(x1);
+        importantX.emplace(x2);
+        xToStartingSegments[x1].emplace_back(i);
+        xToEndingSegments[x2].emplace_back(i);
+    }
+    for (int i = 0; i < m; ++i) {
+        int x, y;
+        cin >> x >> y;
+        xToDangerousY[x].emplace_back(y);
+        importantX.emplace(x);
+    }
+    
+    solve();
+    bfs(a);
+    cout << dist[b];
+}
+
