@@ -7,40 +7,21 @@ int n, q;
 multiset<int> adj[MAXN];
 int answer[MAXN];
 vector<bool> vis;
-vector<int> startPoints;
+vector<int> toChange;
 vector<int> parent;
-int dfs(int v) {
-    //cout << v << ' ';
+int ileV, ileM;
+void dfs(int v) {
+    toChange.push_back(v);
+    ileV++;
+    ileM += adj[v].size();
     vis[v] = 1;
     int odp = 0; 
     for (auto u : adj[v]) {
-        if (vis[u]) {
-            if (parent[v] == u)
-                continue;
-            startPoints.push_back(u);
-            answer[u] = 2;
+        if (vis[u]) { 
             continue;
         }
         parent[u] = v;
         dfs(u);
-    }
-}
-void bfs() {
-    queue<int> q;
-    for (auto i : startPoints) {
-        q.push(i);
-        answer[i] = 2;
-
-    }
-    while (!q.empty()) {
-        int v = q.front();
-        q.pop();
-        for (auto u : adj[v]) {
-            if (answer[u] == 2)
-                continue;
-            answer[u] = 2;
-            q.push(u);
-        }
     }
 }
 int main() {
@@ -56,15 +37,24 @@ int main() {
             answer[b] = max(answer[b], 1);
             vis.assign(n+10, 0);
             parent.assign(n+10, 0);
+            ileV = 0;
+            ileM = 0;
+            toChange.clear();
             dfs(a);
-            bfs();
+            ileM /= 2;
+            if (ileM < ileV)
+                continue;
+            for (auto i : toChange)
+                answer[i] = 2;
             //cout << '\n';
         }
         else if (type == '-') {
             int query; cin >> query;
             for (auto i = adj[query].begin(); i != adj[query].end(); i++) {
+                if (*i == query)
+                    continue;
                 adj[*i].erase(query);
-                if (adj[*i].empty() && answer[*i] != 2)
+                if (adj[*i].empty() && answer[*i] != 2 && adj[query].size() == 1)
                     answer[*i] = 0;
             }
             answer[query] = 0;
