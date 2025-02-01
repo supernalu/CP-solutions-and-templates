@@ -1,5 +1,5 @@
 //*point-range type
-/*
+
 #include <bits/stdc++.h>
 using namespace std;
 typedef long long ll;
@@ -32,11 +32,11 @@ ll rangeQuery(int l, int r, int v) {
         return RangeSum[v];
     return rangeQuery(l, r, 2*v)+rangeQuery(l, r, 2*v+1);
 }
-*/
+
 
 
 //*range-point type
-/*
+
 #include <bits/stdc++.h>
 using namespace std;
 typedef long long ll;
@@ -83,7 +83,7 @@ ll Query(int k, int v) {
         return RangeSum[v];
     return Query(k, 2*v) + Query(k, 2*v+1);
 }
-*/
+
 
 
 //*range-range type
